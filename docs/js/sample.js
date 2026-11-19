@@ -15,6 +15,9 @@ serialize_precision = -1
 disable_functions =
 zend.enable_gc = On
 
+; Do not collect function arguments in exception and fatal error backtraces
+zend.exception_ignore_args = Off
+
 ; Decides whether PHP may expose the fact that it is installed on the server
 expose_php = On
 
@@ -32,10 +35,15 @@ error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT
 display_errors = Off
 display_startup_errors = Off
 log_errors = On
+; Log errors to specified file.
+error_log = /var/log/php_errors.log
 
 ; Maximum size of POST data that PHP will accept.
 ; https://php.net/post-max-size
 post_max_size = 64M
+
+; cgi.fix_pathinfo provides *real* PATH_INFO/PATH_TRANSLATED support for CGI.
+;cgi.fix_pathinfo=1
 
 [Data Handling]
 variables_order = "GPS"

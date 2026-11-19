@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Analizador php.ini · PHP 19/11/2026</title>
-  <meta name="description" content="Analiza un php.ini en tu navegador y descarga una versión anotada con las mitigaciones de CVE-2026-115560 y de la publicación de seguridad de PHP del 19/11/2026 mientras actualizas PHP.">
+  <meta name="description" content="Analiza un php.ini en tu navegador y descarga una versión anotada con las mitigaciones de las vulnerabilidades críticas corregidas en PHP 8.5.13, 8.4.28, 8.3.37 y 8.2.36 (19/11/2026) mientras actualizas PHP.">
   <link rel="alternate" hreflang="es" href="../es/">
   <link rel="alternate" hreflang="en" href="../en/">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%226%22 fill=%22%234f46e5%22/%3E%3Ctext x=%2216%22 y=%2222%22 font-size=%2216%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22sans-serif%22 font-weight=%22bold%22%3Eini%3C/text%3E%3C/svg%3E">
@@ -18,8 +18,8 @@
         <span aria-current="page">Español</span> · <a href="../en/" hreflang="en" lang="en">English</a>
       </nav>
       <p class="eyebrow">PHP · publicación de seguridad del 19/11/2026 · severidad máxima crítica</p>
-      <h1>Analizador de <code>php.ini</code> frente a CVE-2026-115560</h1>
-      <p class="lead">Sube tu <code>php.ini</code> y obtén una copia anotada con los cambios sugeridos para mitigar <strong>CVE-2026-115560</strong> (ejecución remota de código a través del progreso de subida de sesión) mientras actualizas PHP. Todo se procesa en tu navegador: el fichero nunca sale de tu equipo.</p>
+      <h1>Analizador de <code>php.ini</code> frente a las vulnerabilidades de PHP del 19/11/2026</h1>
+      <p class="lead">Sube tu <code>php.ini</code> y obtén una copia anotada con los cambios sugeridos para mitigar las vulnerabilidades críticas corregidas en <strong>PHP 8.5.13, 8.4.28, 8.3.37 y 8.2.36</strong> (entre ellas CVE-2026-115560) mientras actualizas PHP. Todo se procesa en tu navegador: el fichero nunca sale de tu equipo.</p>
     </div>
   </header>
 
@@ -43,16 +43,16 @@
           <label for="version">Versión de PHP en el servidor</label>
           <select id="version">
             <option value="unknown">No lo sé / no indicar</option>
-            <option value="8.5">8.5 (corrección prevista en 8.5.13)</option>
-            <option value="8.4">8.4 (corrección prevista en 8.4.28)</option>
-            <option value="8.3">8.3 (corrección prevista en 8.3.37)</option>
-            <option value="8.2">8.2 (corrección prevista en 8.2.36)</option>
+            <option value="8.5">8.5 (corregida en 8.5.13)</option>
+            <option value="8.4">8.4 (corregida en 8.4.28)</option>
+            <option value="8.3">8.3 (corregida en 8.3.37)</option>
+            <option value="8.2">8.2 (corregida en 8.2.36)</option>
             <option value="8.1">8.1 (sin soporte: solo parches de distribución)</option>
             <option value="8.0">8.0 (sin soporte: solo parches de distribución)</option>
             <option value="7.4">7.4 (sin soporte: solo parches de distribución)</option>
             <option value="old">7.3 o anterior (sin parche)</option>
           </select>
-          <p class="help">Puedes obtenerla con <code>php -v</code>. Sirve para indicar la versión a la que actualizar.</p>
+          <p class="help">Puedes obtenerla con <code>php -v</code>. Sirve para adaptar las recomendaciones (varias directivas solo aplican a 8.5).</p>
           <label for="ini-text">O pega el contenido directamente</label>
           <textarea id="ini-text" rows="10" spellcheck="false" placeholder="; contenido de php.ini"></textarea>
           <div class="row">
@@ -91,7 +91,7 @@
     <section class="card" id="about-card">
       <h2>¿Qué comprueba esta herramienta?</h2>
       <div id="rules-doc"></div>
-      <p class="muted">Fuentes: avisos de seguridad de PHP del 23/10/2026 y del 18/11/2026, The Hacker News, The Register, SecurityWeek, Aikido. Consulta el <a href="https://github.com/ojgarciab/2026-11-19-php-vulnerable#readme">README</a> del proyecto.</p>
+      <p class="muted">Fuentes: avisos de seguridad de PHP publicados el 19/11/2026 (php-src) y notas de las versiones 8.5.13, 8.4.28, 8.3.37 y 8.2.36. Consulta el <a href="https://github.com/ojgarciab/2026-11-19-php-vulnerable#readme">README</a> del proyecto.</p>
     </section>
   </main>
 

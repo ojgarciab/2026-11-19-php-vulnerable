@@ -122,7 +122,7 @@
         '<td data-label="' + esc(labels[2]) + '">' + (f.line ? f.line : '—') + (f.conditionalLines.length ? ' <span class="muted" title="' + esc(L.ui.alsoConditional) + '">(+' + f.conditionalLines.join(', ') + ')</span>' : '') + '</td>' +
         '<td data-label="' + esc(labels[3]) + '">' + (f.current !== null ? '<code>' + esc(f.current === '' ? L.ui.empty : f.current) + '</code>' : '<span class="muted">' + esc(L.ui.notDefined) + '</span>') + '</td>' +
         '<td data-label="' + esc(labels[4]) + '"><code>' + esc(f.suggested) + '</code></td>' +
-        '<td data-label="' + esc(labels[5]) + '">' + (f.cve ? '<a href="https://nvd.nist.gov/vuln/detail/' + esc(f.cve) + '" target="_blank" rel="noopener">' + esc(f.cve) + '</a>' : '—') + '</td>' +
+        '<td data-label="' + esc(labels[5]) + '">' + (f.cves.length ? f.cves.map((c) => '<a href="https://github.com/php/php-src/security/advisories/' + esc(A.CVES[c].ghsa) + '" target="_blank" rel="noopener">' + esc(c) + '</a>').join('<br>') : '—') + '</td>' +
         '<td data-label="' + esc(labels[6]) + '"><span class="sev sev-' + esc(f.severity) + '">' + esc(L.severity[f.severity]) + '</span></td>';
       tbody.appendChild(tr);
       const d = document.createElement('tr');
@@ -135,11 +135,11 @@
   function renderRulesDoc() {
     const el = $('#rules-doc');
     const cves = Object.keys(A.CVES)
-      .map((id) => '<details class="rule" open><summary>' + esc(id) + ' · ' + esc(L.cves[id].title) + '</summary><p>' + esc(L.cves[id].summary) + '</p><p class="muted">' + esc(L.ui.phpAdvisory) + ' ' + esc(A.CVES[id].ghsa || L.ui.advisoryPending) + '</p></details>')
+      .map((id) => '<details class="rule"><summary>' + esc(id) + ' · ' + esc(L.cves[id].title) + '</summary><p>' + esc(L.cves[id].summary) + '</p><p class="muted">' + esc(L.ui.phpAdvisory) + ' ' + esc(A.CVES[id].ghsa) + ' · CVSS ' + esc(A.CVES[id].cvss) + '</p></details>')
       .join('');
     const rules = A.RULES.map((r) => {
       const T = L.rules[r.key];
-      return '<details class="rule"><summary><code>' + esc(r.key) + ' = ' + esc(r.suggested) + '</code> · <span class="sev sev-' + r.severity + '">' + esc(L.severity[r.severity]) + '</span> · ' + esc(T.category) + (r.cve ? ' · ' + esc(r.cve) : '') + '</summary>' +
+      return '<details class="rule"><summary><code>' + esc(r.key) + ' = ' + esc(r.suggested) + '</code> · <span class="sev sev-' + r.severity + '">' + esc(L.severity[r.severity]) + '</span> · ' + esc(T.category) + (r.cves.length ? ' · ' + esc(r.cves.join(', ')) : '') + '</summary>' +
         '<p>' + esc(T.why) + '</p><p><strong>' + esc(L.ui.caution) + '</strong> ' + esc(T.caveat) + '</p><p class="muted">' + esc(L.ui.scope) + ' ' + esc(r.scope) + '</p></details>';
     }).join('');
     el.innerHTML = '<h3>' + esc(L.ui.vulnerabilities) + '</h3>' + cves + '<h3>' + esc(L.ui.directives) + '</h3>' + rules;

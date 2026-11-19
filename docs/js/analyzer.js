@@ -1,13 +1,10 @@
 /*
  * Analizador de php.ini para las mitigaciones de la publicación de seguridad
- * de PHP del 19/11/2026 (CVE-2026-115560 y las que se anuncien con ella).
+ * de PHP del 19/11/2026 (8.5.13 / 8.4.28 / 8.3.37 / 8.2.36).
  *
  * Módulo sin dependencias, ejecutable en navegador (window.PhpIniAnalyzer)
  * y en Node.js (module.exports). Los textos se cargan desde los ficheros
  * de idioma js/locale-*.js, que se registran con registerLocale().
- *
- * ESQUELETO: los datos marcados con «PENDIENTE» deben confirmarse con los
- * avisos oficiales de PHP en cuanto se publiquen (19/11/2026, 14:00-14:30 UTC).
  */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) {
@@ -21,15 +18,21 @@
   // Etiqueta que identifica el incidente en los comentarios del php.ini generado.
   const TAG = 'PHP-2026-11';
 
-  // PENDIENTE: números de versión previstos (siguiente parche de cada rama tras
-  // 8.5.12 / 8.4.27 / 8.3.36 / 8.2.35). Confirmar con el anuncio oficial y poner
-  // RELEASE_CONFIRMED = true.
+  // Versiones publicadas el 19/11/2026.
   const FIXED_VERSIONS = { '8.5': '8.5.13', '8.4': '8.4.28', '8.3': '8.3.37', '8.2': '8.2.36' };
-  const RELEASE_CONFIRMED = false;
+  const RELEASE_CONFIRMED = true;
 
-  // PENDIENTE: añadir el identificador GHSA y el resto de CVE cuando se publiquen.
+  // Vulnerabilidades críticas de la publicación y las que tienen mitigación en php.ini.
+  // La lista completa (17 avisos) está en el README.
   const CVES = {
-    'CVE-2026-115560': { id: 'CVE-2026-115560', ghsa: null },
+    'CVE-2026-115560': { id: 'CVE-2026-115560', ghsa: 'GHSA-658j-r8rw-q6mx', cvss: '9.2' },
+    'CVE-2026-126714': { id: 'CVE-2026-126714', ghsa: 'GHSA-fm2m-fjf5-v3cp', cvss: '9.2' },
+    'CVE-2026-129289': { id: 'CVE-2026-129289', ghsa: 'GHSA-qc49-hpvq-g2w6', cvss: '9.2' },
+    'CVE-2026-129496': { id: 'CVE-2026-129496', ghsa: 'GHSA-gr4f-wgx5-jpfv', cvss: '9.2' },
+    'CVE-2026-129481': { id: 'CVE-2026-129481', ghsa: 'GHSA-g3vh-838c-65v7', cvss: '9.2' },
+    'CVE-2026-129474': { id: 'CVE-2026-129474', ghsa: 'GHSA-8mjj-2r7p-4hg2', cvss: '9.2' },
+    'CVE-2026-129182': { id: 'CVE-2026-129182', ghsa: 'GHSA-2fjv-p558-g82m', cvss: '9.2' },
+    'CVE-2026-129538': { id: 'CVE-2026-129538', ghsa: 'GHSA-5j3f-64r7-f564', cvss: '6.9' },
   };
 
   const locales = {};
@@ -173,9 +176,16 @@
   /* ------------------------------------------------------------------ */
 
   // check() devuelve { status, msg?, params? }; msg es la clave del texto en el idioma.
+  // Directivas que solo existen o solo son explotables en PHP 8.5.
+  function only85(ctx) {
+    if (ctx.version && ctx.version !== '8.5' && ctx.version !== 'unknown') return { status: 'skip', msg: 'skip' };
+    if (!ctx.present) return ctx.version === '8.5' ? { status: 'add', msg: 'add' } : { status: 'info', msg: 'info' };
+    return null;
+  }
+
   const RULES = [
     {
-      key: 'session.upload_progress.enabled', cve: 'CVE-2026-115560', severity: 'critica', suggested: 'Off', scope: 'PHP_INI_PERDIR',
+      key: 'session.upload_progress.enabled', cves: ['CVE-2026-115560', 'CVE-2026-126714'], severity: 'critica', suggested: 'Off', scope: 'PHP_INI_PERDIR',
       check(ctx) {
         if (!ctx.present) return { status: 'add', msg: 'add' };
         if (iniBool(ctx.value) === false) return { status: 'ok' };
@@ -183,10 +193,10 @@
       },
     },
     {
-      // Primera condición de CVE-2026-115560: manejador configurado distinto de «php».
-      // La segunda (ini_set() a «php» antes de session_start()) está en el código de la
-      // aplicación y no se puede comprobar desde php.ini: solo se pide revisarlo.
-      key: 'session.serialize_handler', cve: 'CVE-2026-115560', severity: 'alta', suggested: 'php', scope: 'PHP_INI_ALL',
+      // El desajuste de serializadores también puede darse entre aplicaciones, pools o
+      // tareas CLI que comparten almacén de sesiones: no se puede comprobar desde un
+      // único php.ini, así que solo se pide revisarlo.
+      key: 'session.serialize_handler', cves: ['CVE-2026-115560'], severity: 'alta', suggested: 'php', scope: 'PHP_INI_ALL',
       check(ctx) {
         if (!ctx.present) return { status: 'ok' };
         const v = stripQuotes(ctx.value).toLowerCase();
@@ -195,14 +205,50 @@
       },
     },
     {
-      key: 'expose_php', cve: null, severity: 'baja', suggested: 'Off', scope: 'PHP_INI_SYSTEM',
+      key: 'fatal_error_backtraces', cves: ['CVE-2026-129182', 'CVE-2026-129474'], severity: 'critica', suggested: 'Off', scope: 'PHP_INI_ALL',
+      check(ctx) {
+        const r = only85(ctx);
+        if (r) return r;
+        if (iniBool(ctx.value) === false) return { status: 'ok' };
+        return { status: 'change', msg: 'change', params: { value: ctx.value } };
+      },
+    },
+    {
+      key: 'zend.exception_ignore_args', cves: ['CVE-2026-129474'], severity: 'critica', suggested: 'On', scope: 'PHP_INI_ALL',
+      check(ctx) {
+        const r = only85(ctx);
+        if (r) return r;
+        if (iniBool(ctx.value) === true) return { status: 'ok' };
+        return { status: 'change', msg: 'change', params: { value: ctx.value } };
+      },
+    },
+    {
+      // Solo se revisa si error_log apunta a un fichero: sin definir (stderr / log del
+      // SAPI) o con syslog no se alcanza la ruta vulnerable del aviso.
+      key: 'error_log', cves: ['CVE-2026-129496'], severity: 'alta', suggested: 'syslog', scope: 'PHP_INI_ALL',
+      check(ctx) {
+        if (!ctx.present) return { status: 'ok' };
+        const v = stripQuotes(ctx.value).toLowerCase();
+        if (v === '' || v === 'syslog') return { status: 'ok' };
+        return { status: 'info', msg: 'info', params: { value: ctx.value } };
+      },
+    },
+    {
+      key: 'cgi.fix_pathinfo', cves: ['CVE-2026-129538'], severity: 'media', suggested: '0', scope: 'PHP_INI_SYSTEM',
+      check(ctx) {
+        if (!ctx.present) return { status: 'info', msg: 'infoAbsent' };
+        if (iniBool(ctx.value) === false) return { status: 'ok' };
+        return { status: 'info', msg: 'infoOn' };
+      },
+    },
+    {
+      key: 'expose_php', cves: [], severity: 'baja', suggested: 'Off', scope: 'PHP_INI_SYSTEM',
       check(ctx) {
         if (!ctx.present) return { status: 'add', msg: 'add' };
         if (iniBool(ctx.value) === false) return { status: 'ok' };
         return { status: 'change', msg: 'change', params: { value: ctx.value } };
       },
     },
-    // PENDIENTE: añadir aquí las directivas que citen los avisos del 19/11/2026.
   ];
 
   function tpl(str, params) {
@@ -227,7 +273,8 @@
       const T = L.rules[rule.key];
       findings.push({
         key: rule.key,
-        cve: rule.cve,
+        cve: rule.cves[0] || null,
+        cves: rule.cves,
         severity: rule.severity,
         category: T.category,
         suggested: rule.suggested,
@@ -290,7 +337,7 @@
     function commentBlock(f, action) {
       const lines = [];
       lines.push(';; --- ' + TAG + ': ' + action + ' [' + L.severity[f.severity] + '] ---');
-      if (f.cve) lines.push(';; ' + f.cve + ' (' + (CVES[f.cve].ghsa || L.ui.advisoryPending) + ')');
+      for (const c of f.cves) lines.push(';; ' + c + ' (' + CVES[c].ghsa + ')');
       if (f.detail) lines.push(...wrap(A.reason + ' ' + f.detail, 76, ';; '));
       lines.push(...wrap(f.why, 76, ';; '));
       lines.push(...wrap(A.caution + ' ' + f.caveat, 76, ';; '));

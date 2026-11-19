@@ -34,7 +34,26 @@ assert.equal(find(res, 'session.serialize_handler').status, 'info');
 assert.equal(find(res, 'session.serialize_handler').line, 4);
 assert.equal(find(res, 'expose_php').status, 'change');
 assert.equal(res.versionInfo.target, A.FIXED_VERSIONS['8.3']);
+assert.equal(res.versionInfo.target, '8.3.37');
+assert.equal(A.RELEASE_CONFIRMED, true);
 assert.equal(A.analyze(ini, { version: '8.1' }).versionInfo.kind, 'eol');
+// Directivas exclusivas de 8.5
+assert.equal(find(res, 'fatal_error_backtraces').status, 'skip');
+assert.equal(find(res, 'zend.exception_ignore_args').status, 'skip');
+const r85 = A.analyze(ini, { version: '8.5' });
+assert.equal(find(r85, 'fatal_error_backtraces').status, 'add');
+assert.equal(find(r85, 'zend.exception_ignore_args').status, 'add');
+assert.equal(find(A.analyze('zend.exception_ignore_args=Off', { version: '8.5' }), 'zend.exception_ignore_args').status, 'change');
+assert.equal(find(A.analyze(ini), 'fatal_error_backtraces').status, 'info');
+// error_log: solo se revisa si apunta a un fichero
+assert.equal(find(res, 'error_log').status, 'ok');
+assert.equal(find(A.analyze('error_log = /var/log/php.log'), 'error_log').status, 'info');
+assert.equal(find(A.analyze('error_log = syslog'), 'error_log').status, 'ok');
+// cgi.fix_pathinfo: sugerencia opcional
+assert.equal(find(res, 'cgi.fix_pathinfo').status, 'info');
+assert.equal(find(A.analyze('cgi.fix_pathinfo=0'), 'cgi.fix_pathinfo').status, 'ok');
+// Todas las reglas referencian CVE conocidos
+for (const r of A.RULES) for (const c of r.cves) assert.ok(A.CVES[c] && /^GHSA-/.test(A.CVES[c].ghsa), r.key + ': ' + c);
 
 // Anotación: la salida debe ser un php.ini válido con los valores sugeridos como última aparición
 const { output } = A.annotate(ini, { version: '8.3', date: '2026-11-19' });
@@ -46,7 +65,8 @@ assert.equal(last('expose_php').value, 'Off');
 assert.equal(last('session.serialize_handler').value, '"php_serialize"');
 assert.ok(output.includes(';;OLD expose_php = On ; comentario'));
 assert.ok(output.includes('ATENCIÓN ' + A.TAG));
-assert.ok(output.includes('CVE-2026-115560'));
+assert.ok(output.includes('CVE-2026-115560 (GHSA-658j-r8rw-q6mx)'));
+assert.ok(output.includes('CVE-2026-126714 (GHSA-fm2m-fjf5-v3cp)'));
 // La directiva ausente se inserta bajo su versión comentada y antes de [HOST=...]
 const lines = output.split('\n');
 const ci = lines.indexOf(';session.upload_progress.enabled = On');
@@ -54,7 +74,7 @@ const di = lines.indexOf('session.upload_progress.enabled = Off');
 assert.ok(ci >= 0 && di > ci && di < lines.indexOf('[HOST=www.example.com]'), 'debe insertarse bajo la línea comentada');
 
 // Fichero ya seguro: sin manejador definido (por defecto php) y progreso de subida desactivado
-const safe = ['session.upload_progress.enabled=0', 'expose_php=Off'].join('\n');
+const safe = ['session.upload_progress.enabled=0', 'expose_php=Off', 'fatal_error_backtraces=0', 'zend.exception_ignore_args=On', 'cgi.fix_pathinfo=0', 'error_log=syslog'].join('\n');
 const r2 = A.analyze(safe, { version: '8.5' });
 assert.ok(r2.findings.every((f) => f.status === 'ok'), 'no debería haber cambios');
 for (const v of ['php_binary', 'PHP_SERIALIZE']) {
