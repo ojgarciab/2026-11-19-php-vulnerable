@@ -13,6 +13,10 @@ su mismo motor.
 **Todo se ejecuta en el navegador, en JavaScript puro.** El `php.ini` no se envía a ningún
 servidor.
 
+Web publicada: <https://2026-11-19-php-vulnerable.linaresdigital.com/>, disponible en
+[español](https://2026-11-19-php-vulnerable.linaresdigital.com/es/) e
+[inglés](https://2026-11-19-php-vulnerable.linaresdigital.com/en/).
+
 > [!WARNING]
 > **Estado: esqueleto, redactado el 19/11/2026 a las 08:15 UTC, antes de la publicación.**
 > PHP publica las versiones corregidas hoy entre las **14:00 y las 14:30 UTC**. Hasta entonces
@@ -139,9 +143,10 @@ El sitio es completamente estático y vive en la carpeta `docs/`. Hay una págin
 `docs/js`. La raíz `docs/index.html` redirige al idioma guardado en el navegador o, si no lo hay,
 al del propio navegador (español por defecto).
 
-GitHub Pages **no está activado todavía** en este repositorio. Para publicarlo: *Settings → Pages
-→ Deploy from a branch*, rama publicada y carpeta `/docs`. El fichero `docs/.nojekyll` evita el
-procesado de Jekyll. Las pruebas se ejecutan en cada *push* mediante `.github/workflows/test.yml`.
+GitHub Pages se configura en *Settings → Pages* con *Deploy from a branch*, rama `master` y carpeta
+`/docs`, de modo que cada *push* a `master` actualiza la web. El dominio propio se declara en
+`docs/CNAME`, y `docs/.nojekyll` evita el procesado de Jekyll. Las pruebas se ejecutan en cada
+*push* mediante `.github/workflows/test.yml`.
 
 Para probar en local:
 
